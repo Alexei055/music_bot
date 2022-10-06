@@ -28,4 +28,12 @@ CONTROLLER_BUTTON = [
     Button(custom_id=PlayerControls.LOOP_MODE,
            emoji=ControllerEmoji.LOOP_MODE_EMOJI,
            style=ButtonStyle.gray),
+    Button(custom_id=PlayerControls.ADD_TO_PLAYLIST,
+           label="Добавить в плейлист",
+           row=2,
+           style=ButtonStyle.green),
+    Button(custom_id=PlayerControls.REMOVE_FROM_PLAYLIST,
+           label="Убрать из плейлиста",
+           row=2,
+           style=ButtonStyle.red),
 ]

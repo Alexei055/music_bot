@@ -29,3 +29,5 @@ class PlayerControls:
     SHUFFLE = "musicplayer_shuffle"
     LOOP_MODE = "musicplayer_loop_mode"
     REMOVE_LISTS = "REMOVE_LISTS"
+    ADD_TO_PLAYLIST = "add_to_playlist"
+    REMOVE_FROM_PLAYLIST = "remove_from_playlist"
