@@ -30,7 +30,7 @@ class MyBot(commands.Bot):
 
 bot = MyBot(command_prefix="^^",
             intents=intents,
-            test_guilds=[262289366041362432, 439415430998786061, 634712809518923787],
+            test_guilds=Config.GUILD_IDS,
             sync_commands=True)
 
 bot.load_extension("cogs.music")

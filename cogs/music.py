@@ -42,7 +42,9 @@ class Music(commands.Cog):
         await self.player_controller(interaction, interaction.data.custom_id)
 
     @commands.Cog.listener()
-    async def on_voice_state_update(self, member: disnake.Member, before: disnake.VoiceState,
+    async def on_voice_state_update(self,
+                                    member: disnake.Member,
+                                    before: disnake.VoiceState,
                                     after: disnake.VoiceState):
         if before.channel == after.channel:
             return
@@ -81,6 +83,15 @@ class Music(commands.Cog):
             return
         player.update_embed.cancel()
         await player.do_next()
+
+    @commands.Cog.listener("on_dropdown")
+    async def on_dropdown_player(self, inter: disnake.MessageInteraction):
+        player: Player = self.bot.node.get_player(inter.guild)
+        selected_value = int(inter.values[0])
+        await inter.response.edit_message(f"`{player.queue._queue[selected_value].title}` удален из очереди",
+                                          components=[])
+        del player.queue._queue[selected_value]
+        await player.invoke_controller()
 
     async def player_controller(self, interaction: disnake.MessageInteraction, control: str):
         player: Player = self.bot.node.get_player(interaction.guild)
@@ -133,8 +144,7 @@ class Music(commands.Cog):
             await channel.connect(cls=player)
             return player
 
-    @commands.slash_command(name="play",
-                            guild_ids=[262289366041362432, 439415430998786061, 634712809518923787], )
+    @commands.slash_command(name="play", )
     async def play(self,
                    inter: disnake.CommandInteraction,
                    search: str = commands.Param(description="URL или название трека", )):
@@ -145,8 +155,7 @@ class Music(commands.Cog):
 
     @commands.slash_command(name="setup",
                             description="Привязывает плеер к каналу",
-                            guild_ids=[262289366041362432, 439415430998786061, 634712809518923787],
-                            default_member_permissions=8,)
+                            default_member_permissions=8, )
     async def setup_channel(self,
                             inter: disnake.CommandInteraction,
                             channel: disnake.TextChannel = commands.Param(name="канал",
@@ -164,8 +173,7 @@ class Music(commands.Cog):
 
     @commands.slash_command(name="set_dj_role",
                             description="Устанавливает роль dj",
-                            guild_ids=[262289366041362432, 439415430998786061, 634712809518923787],
-                            default_member_permissions=8,)
+                            default_member_permissions=8, )
     async def set_dj_role(self, inter: disnake.CommandInteraction, role: disnake.Role):
         await inter.response.defer()
         Config.DJ_ROLE_ID = role.id
@@ -234,6 +242,32 @@ class Music(commands.Cog):
                 await inter.response.send_message("Очередь пуста")
         else:
             await inter.response.send_message(f"Музыка сейчас не играет", delete_after=15)
+
+    @commands.slash_command(name="move",
+                            description="Переместить бота в другой голосовой канал")
+    async def move_bot(self, inter: disnake.CommandInteraction, channel: disnake.VoiceChannel):
+        player: Player = self.bot.node.get_player(inter.guild)
+        if player:
+            if inter.author.id == player.dj.id or player.dj in inter.author.roles:
+                await player.move_to(channel)
+                await inter.response.send_message(f"Я переместился в {channel.mention}")
+            else:
+                await inter.response.send_message(f"Вы не являетесь диджеем этого бота")
+        else:
+            await inter.response.send_message(f"Я сейчас не играю музыку")
+
+    @commands.slash_command(name="qclear",
+                            description="Очищает очередь")
+    async def clear_queue(self, inter: disnake.CommandInteraction):
+        player: Player = self.bot.node.get_player(inter.guild)
+        if player:
+            if inter.author.id == player.dj.id or player.dj in inter.author.roles:
+                player.queue = asyncio.Queue()
+                await inter.response.send_message(f"Очередь была очищена")
+            else:
+                await inter.response.send_message(f"Вы не являетесь диджеем этого бота")
+        else:
+            await inter.response.send_message(f"Я сейчас не играю музыку")
 
 
 def setup(bot: commands.Bot):
