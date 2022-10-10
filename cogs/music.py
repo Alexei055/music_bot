@@ -134,7 +134,7 @@ class Music(commands.Cog):
                       user: disnake.Member,
                       channel: disnake.VoiceChannel = None):
         dj = inter.guild.get_role(Config.DJ_ROLE_ID) if Config.DJ_ROLE_ID else user
-        player = Player(inter=inter, dj=dj, bot=self)
+        player = Player(inter=inter, dj=dj, bot=self.bot)
 
         channel = getattr(user.voice, 'channel', channel)
 

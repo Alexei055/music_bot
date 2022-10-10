@@ -19,6 +19,8 @@ class Config:
     DJ_ROLE_ID: int = _config["DJ_ROLE_ID"]
     MUSIC_CHANNEL: int = _config["MUSIC_CHANNEL"]
     GUILD_IDS: list[int] = _config["GUILD_IDS"]
+    SPOTIFY_CLIENT_ID: str = _config["SPOTIFY_CLIENT_ID"]
+    SPOTIFY_SECRET: str = _config["SPOTIFY_SECRET"]
 
 
 class PlayerControls:

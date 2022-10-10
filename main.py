@@ -2,6 +2,7 @@ import disnake
 import wavelink
 from disnake.ext import commands
 from utils import Config
+from wavelink.ext import spotify
 
 intents = disnake.Intents.all()
 
@@ -19,11 +20,17 @@ class MyBot(commands.Bot):
         """Подключение и инициализация узлов лавалинк"""
         await self.wait_until_ready()
 
-        node: wavelink.Node = await wavelink.NodePool.create_node(bot=self,
-                                                                  host=Config.LAVA_HOST,
-                                                                  port=Config.LAVA_PORT,
-                                                                  password=Config.LAVA_PASS,
-                                                                  )
+        nodes = {"bot": self,
+                 "host": Config.LAVA_HOST,
+                 "port": Config.LAVA_PORT,
+                 "password": Config.LAVA_PASS,
+                 }
+
+        if Config.SPOTIFY_CLIENT_ID:
+            nodes["spotify_client"] = spotify.SpotifyClient(client_id=Config.SPOTIFY_CLIENT_ID,
+                                                            client_secret=Config.SPOTIFY_SECRET)
+
+        node: wavelink.Node = await wavelink.NodePool.create_node(**nodes)
         self.node = node
         print(f"[dismusic] INFO - Created node: {node.identifier}")
 

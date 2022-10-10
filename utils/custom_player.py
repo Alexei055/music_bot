@@ -62,8 +62,7 @@ class Player(wavelink.Player):
             await self.message_controller.edit(content=content,
                                                embed=self.build_embed())
             self.message_controller = message
-        except disnake.NotFound:
-
+        except:
             if Config.MUSIC_CHANNEL:
                 channel = self.bot.get_channel(Config.MUSIC_CHANNEL)
                 self.message_controller = await channel.send(content=content,
