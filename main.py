@@ -20,9 +20,9 @@ class MyBot(commands.Bot):
         await self.wait_until_ready()
 
         node: wavelink.Node = await wavelink.NodePool.create_node(bot=self,
-                                                                  host="127.0.0.1",
-                                                                  port=2333,
-                                                                  password="admin",
+                                                                  host=Config.LAVA_HOST,
+                                                                  port=Config.LAVA_PORT,
+                                                                  password=Config.LAVA_PASS,
                                                                   )
         self.node = node
         print(f"[dismusic] INFO - Created node: {node.identifier}")

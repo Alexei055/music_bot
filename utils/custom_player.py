@@ -3,9 +3,10 @@ import time
 import async_timeout
 import disnake
 import wavelink
-from disnake.ext import tasks
+from disnake.ext import tasks, commands
+
 from utils import PlayerControls, CONTROLLER_BUTTON, ControllerEmoji, SECONDS_FOR_UPDATE_PLAYER_MESSAGE, \
-    TRACK_POSITION_EMBED_EMOJI, TRACK_LEFT_EMOJI, URL_REG, MUSIC_EMBED_GIF, PLAYER_TIMEOUT
+    TRACK_POSITION_EMBED_EMOJI, TRACK_LEFT_EMOJI, URL_REG, MUSIC_EMBED_GIF, PLAYER_TIMEOUT, Config
 
 
 class Player(wavelink.Player):
@@ -14,6 +15,7 @@ class Player(wavelink.Player):
 
         self.inter: disnake.MessageInteraction | disnake.Message = kwargs.get('inter', None)
         self.dj: disnake.Member | disnake.Role = kwargs.get('dj', None)
+        self.bot: commands.Bot = kwargs.get('bot', None)
         self.message_controller: disnake.Message | None = None
         self.message_controller_id: int = 0
         self.queue = asyncio.Queue()
@@ -61,15 +63,24 @@ class Player(wavelink.Player):
                                                embed=self.build_embed())
             self.message_controller = message
         except disnake.NotFound:
-            if isinstance(self.inter, disnake.Message):
-                self.message_controller = await self.inter.channel.send(content=content,
-                                                                        embed=self.build_embed(),
-                                                                        components=components)
+
+            if Config.MUSIC_CHANNEL:
+                channel = self.bot.get_channel(Config.MUSIC_CHANNEL)
+                self.message_controller = await channel.send(content=content,
+                                                             embed=self.build_embed(),
+                                                             components=components)
+
             else:
-                self.message_controller = await self.inter.response.send_message(content=content,
-                                                                                 embed=self.build_embed(),
-                                                                                 components=components)
+                if isinstance(self.inter, disnake.Message):
+                    self.message_controller = await self.inter.channel.send(content=content,
+                                                                            embed=self.build_embed(),
+                                                                            components=components)
+                else:
+                    self.message_controller = await self.inter.edit_original_message(content=content,
+                                                                                     embed=self.build_embed(),
+                                                                                     components=components)
             self.message_controller_id = self.message_controller.id
+
         if not self.update_embed.is_running():
             self.update_embed.start()
 
@@ -108,7 +119,7 @@ class Player(wavelink.Player):
             if isinstance(self.inter, disnake.Message):
                 await self.inter.channel.send("Не найдено песен по вашему запросу")
             else:
-                await self.inter.response.send_message("Не найдено песен по вашему запросу")
+                await self.inter.edit_original_message("Не найдено песен по вашему запросу")
             return
 
         if isinstance(tracks, wavelink.YouTubePlaylist):
@@ -124,7 +135,7 @@ class Player(wavelink.Player):
             if isinstance(self.inter, disnake.Message):
                 await self.inter.channel.send(embed=embed)
             else:
-                await self.inter.response.send_message(embed=embed)
+                await self.inter.edit_original_message(embed=embed)
 
         else:
             track = tracks[0]
@@ -137,7 +148,7 @@ class Player(wavelink.Player):
             if isinstance(self.inter, disnake.Message):
                 await self.inter.channel.send(embed=embed)
             else:
-                await self.inter.response.send_message(embed=embed)
+                await self.inter.edit_original_message(embed=embed)
             await self.queue.put(track)
 
         self.inter = inter

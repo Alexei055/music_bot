@@ -134,7 +134,7 @@ class Music(commands.Cog):
                       user: disnake.Member,
                       channel: disnake.VoiceChannel = None):
         dj = inter.guild.get_role(Config.DJ_ROLE_ID) if Config.DJ_ROLE_ID else user
-        player = Player(inter=inter, dj=dj)
+        player = Player(inter=inter, dj=dj, bot=self)
 
         channel = getattr(user.voice, 'channel', channel)
 
@@ -148,6 +148,7 @@ class Music(commands.Cog):
     async def play(self,
                    inter: disnake.CommandInteraction,
                    search: str = commands.Param(description="URL или название трека", )):
+        await inter.response.defer()
         player: Player = self.bot.node.get_player(inter.guild)
         if player is None or not player.is_connected():
             player = await self.connect(inter, inter.user)
@@ -246,8 +247,7 @@ class Music(commands.Cog):
     @commands.slash_command(name="move",
                             description="Переместить бота в другой голосовой канал")
     async def move_bot(self, inter: disnake.CommandInteraction, channel: disnake.VoiceChannel):
-        player: Player = self.bot.node.get_player(inter.guild)
-        if player:
+        if player := self.bot.node.get_player(inter.guild):
             if inter.author.id == player.dj.id or player.dj in inter.author.roles:
                 await player.move_to(channel)
                 await inter.response.send_message(f"Я переместился в {channel.mention}")
@@ -259,8 +259,7 @@ class Music(commands.Cog):
     @commands.slash_command(name="qclear",
                             description="Очищает очередь")
     async def clear_queue(self, inter: disnake.CommandInteraction):
-        player: Player = self.bot.node.get_player(inter.guild)
-        if player:
+        if player := self.bot.node.get_player(inter.guild):
             if inter.author.id == player.dj.id or player.dj in inter.author.roles:
                 player.queue = asyncio.Queue()
                 await inter.response.send_message(f"Очередь была очищена")
