@@ -96,6 +96,10 @@ class Music(commands.Cog):
     async def player_controller(self, interaction: disnake.MessageInteraction, control: str):
         player: Player = self.bot.node.get_player(interaction.guild)
         await interaction.response.defer()
+        if control == PlayerControls.ADD_TO_PLAYLIST:
+            playlists = json.load(open("playlists.json"))
+            print(playlists['262615370773430275'])
+
         if player:
             if interaction.message.id == player.message_controller.id:
                 if player and (interaction.user.id == player.dj.id or player.dj in interaction.user.roles):
@@ -129,6 +133,13 @@ class Music(commands.Cog):
                                 player.looped_track = player.track
                                 await interaction.channel.send("Режим повтора включен")
 
+                        case PlayerControls.ADD_TO_PLAYLIST:
+                            playlists = json.load(open("playlists.json"))
+                            print(playlists)
+
+                        case PlayerControls.REMOVE_FROM_PLAYLIST:
+                            pass
+
     async def connect(self,
                       inter: disnake.CommandInteraction | disnake.Message,
                       user: disnake.Member,
@@ -139,12 +150,13 @@ class Music(commands.Cog):
         channel = getattr(user.voice, 'channel', channel)
 
         if channel is None:
-            await inter.channel.send(f"{user} вы должны находиться в голосовом канале")
+            await inter.channel.send(f"{user.mention} вы должны находиться в голосовом канале")
+            return
         else:
             await channel.connect(cls=player)
             return player
 
-    @commands.slash_command(name="play", )
+    @commands.slash_command(name="play",)
     async def play(self,
                    inter: disnake.CommandInteraction,
                    search: str = commands.Param(description="URL или название трека", )):
@@ -156,7 +168,7 @@ class Music(commands.Cog):
 
     @commands.slash_command(name="setup",
                             description="Привязывает плеер к каналу",
-                            default_member_permissions=8, )
+                            default_member_permissions=8,)
     async def setup_channel(self,
                             inter: disnake.CommandInteraction,
                             channel: disnake.TextChannel = commands.Param(name="канал",
@@ -174,7 +186,7 @@ class Music(commands.Cog):
 
     @commands.slash_command(name="set_dj_role",
                             description="Устанавливает роль dj",
-                            default_member_permissions=8, )
+                            default_member_permissions=8,)
     async def set_dj_role(self, inter: disnake.CommandInteraction, role: disnake.Role):
         await inter.response.defer()
         Config.DJ_ROLE_ID = role.id
